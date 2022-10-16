@@ -1,11 +1,50 @@
-// I AM NOT DONE
-
+%builtins output range_check bitwise
+from starkware.cairo.common.uint256 import Uint256
+from starkware.cairo.common.serialize import serialize_word
 from starkware.cairo.common.bitwise import bitwise_and, bitwise_xor
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin, HashBuiltin
+from starkware.cairo.common.alloc import alloc
 
-// Implement a function that sums even numbers from the provided array
 func sum_even{bitwise_ptr: BitwiseBuiltin*}(arr_len: felt, arr: felt*, run: felt, idx: felt) -> (
     sum: felt
 ) {
-    return (0,);
+    if ( idx == arr_len ) {
+        return (0,);
+    }
+
+    let (tmp_sum) = sum_even(arr_len, arr, run, idx+1);
+
+    let (bitwise_check) = bitwise_and(arr[idx], 1);
+    if ( bitwise_check != 0 ) {
+        return (tmp_sum,);
+    }
+    return (tmp_sum + arr[idx],);
+}
+
+
+func main{output_ptr: felt*, range_check_ptr, bitwise_ptr: BitwiseBuiltin*}() {
+    alloc_locals;
+
+    let (local array: felt*) = alloc();
+    assert array[0] = 2;
+    assert array[1] = 1;
+    let (sum) = sum_even(2, array, 0, 0);
+    assert  2 = sum;
+
+    let (local array: felt*) = alloc();
+    assert array[0] = 2;
+    assert array[1] = 100;
+    assert array[2] = 12;
+    assert array[3] = 2;
+    assert array[4] = 422;
+    assert array[5] = 898;
+    assert array[6] = 10;
+    assert array[7] = 31;
+    assert array[8] = 22;
+    assert array[9] = 5;
+
+    let (sum) = sum_even(10, array, 0, 0);
+    serialize_word(sum);
+
+    return ();
 }
